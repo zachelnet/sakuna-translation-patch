@@ -82,7 +82,10 @@ for table in (DE_A, DE_B, DE_C, DE_PAUSE, DE_SAVELOAD, DE_COMMON,
               DE_QUEST, DE_ACHIEVEMENT, DE_MATERIAL,
               DE_ENCHANT, DE_FOOD, DE_KEYITEM,
               DE_COOKING, DE_WORLDMAP_LM, DE_CREDITS):
-    DE.update(table)
+    for _k, _v in table.items():
+        if _k in DE and DE[_k] != _v:
+            print(f"WARNUNG: doppelter Tabellen-Schluessel, Wert wird ueberschrieben: {_k!r}")
+        DE[_k] = _v
 
 # --------------------------------------------------------------------------- #
 # Rebase (Update-/Beta-Spielstaende): apply_de merkt sich (Datei, Feld#NEUE
@@ -152,6 +155,15 @@ def main(po_root: str = "po") -> int:
             return 2
         active = True
         print(f"Update-/Beta-Stand erkannt - Rebase aktiv: {len(REBASE)} Zuordnungen.")
+    # Alle Dateien, fuer die im aktiven Modus NUR Beta-Key/Rebase gilt
+    # (REBASE-Ziele + "#beta"-Tabellen). Alles andere darf klassisch greifen.
+    masked_rels = set()
+    if active:
+        masked_rels = {k[0] for k in REBASE} | {
+            k[0][: -len("#beta")]
+            for k in DE
+            if isinstance(k[0], str) and k[0].endswith("#beta")
+        }
     for dirpath, _dirs, files in os.walk(po_root):
         for fn in sorted(files):
             if not fn.endswith(".po"):
@@ -164,21 +176,25 @@ def main(po_root: str = "po") -> int:
                 continue
             base = os.path.splitext(os.path.basename(archive_path))[0]
             checked += 1
-            # Datei mit Maskeneintraegen? Dann gilt im aktiven Modus NUR die
-            # Maske - ein Beta-Key ohne Maskeneintrag ist neuer Inhalt und
-            # darf nie einen alten Tabellenwert abbekommen (kein Fallback).
-            file_masked = active and any(k[0] == archive_path for k in REBASE)
             for e in entries:
                 key_path = (archive_path, e["msgctxt"])
                 key_base = (base, e["msgctxt"])
                 val = _UNSET
                 if active:
-                    nk = REBASE.get(key_path)
-                    if nk is not None:
-                        val = DE.get(nk, _MISSING)
-                    elif file_masked:
-                        val = _MISSING
+                    # 1) Beta-eigener Eintrag (gewinnt auch ueber Rebase)
+                    bk = (archive_path + "#beta", e["msgctxt"])
+                    if bk in DE:
+                        val = DE[bk]
+                    else:
+                        # 2) Zeilen-Umschluesselung der Maske
+                        nk = REBASE.get(key_path)
+                        if nk is not None:
+                            val = DE.get(nk, _MISSING)
+                        # 3) maskierte Datei, Key unbekannt -> neuer Inhalt
+                        elif archive_path in masked_rels:
+                            val = _MISSING
                 if val is _UNSET:
+                    # 4) klassischer Fallback (Retail/Identitaet)
                     if key_path in DE:
                         val = DE[key_path]
                     elif key_base in DE:

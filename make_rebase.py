@@ -156,6 +156,11 @@ def main() -> int:
     stats = {"neu": 0, "ident": 0, "tot": 0, "unbekannt": 0}
     for key, val in apply_de.DE.items():
         kpath, ctx = key
+        # Beta-Tabellen (#beta-Suffix) duerfen niemals Teil der Maske werden -
+        # sie beschreiben den neuen Stand selbst, nicht das Umschluesselungsziel.
+        if isinstance(kpath, str) and kpath.endswith("#beta"):
+            stats["unbekannt"] += 1
+            continue
         # Vollstaendige Abdeckung: Jeder Tabellen-Schluessel bekommt einen
         # Beta-Key (Identitaetszuordnungen inklusive). Ein Beta-Key, der NICHT
         # in der Maske steht, ist damit garantiert NEUER Inhalt und darf nie
