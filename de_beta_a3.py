@@ -1,0 +1,75 @@
+# Deutsche Beta-Uebersetzungen (Teil A3): neue Dateien
+# Fumoto/Tauemon(21) + Hataori/Kokorowa(20) + Kaji/Kokorowa(17) = 58
+
+_FILES = {
+"Text/Event/Mura/Fumoto/Tauemon.csvtxt": [
+    (1, 'Puh... Das sollten alle sein.'),
+    (2, 'Wir sind bei den Feldern der Kappa deinem Beispiel gefolgt.'),
+    (3, 'Danke. So sollten wir in diesem Jahr mehr\nErnte einfahren, wie Lady Sakuna es sich wünschte.'),
+    (4, 'Die Insel hatte noch nie so viele Felder,\nnicht einmal zu Zeiten von Takeribi und Toyohana.'),
+    (5, 'Das haben wir Lady Sakunas Fleiß zu verdanken.'),
+    (6, 'Wahr. Wir konnten die Felder der Kappa nur erweitern,\nweil sie das Gebiet von Dämonen geräumt hat.'),
+    (7, 'Und wegen der feinen Führung einer gewissen Person.'),
+    (8, '...Mm. Weißt du, der Duft im Wind hat sich verändert.\nEines Tages mag diese Insel wieder\nfrei von Dämonen sein.'),
+    (9, 'Wie viele Jahre ist es her, dass wir mit der Tradition begannen,\nnach dem Reispflügen zu sprechen?'),
+    (10, 'Vieles ist geschehen, seit wir hierher kamen, aber\nrückblickend fühlt es sich an, als sei alles im\nWimpernschlag vergangen.'),
+    (11, '...'),
+    (12, 'Wieso die Sentimentalität?'),
+    (13, '...Ich bleibe hier auf Hinoe.'),
+    (14, 'Hmmm...'),
+    (15, 'So ist es also.'),
+    (16, 'Ich hoffe, du wirst Lady Sakuna und\nmich weiterhin unterstützen, wie bisher.'),
+    (17, 'Heh... Also wird Sakuna die zweite Prinzessin\ndes Ashigumo-Stamms, was?'),
+    (18, 'Interessant...'),
+    (19, 'Hinoe ist ein wunderbarer Ort. Lass uns daraus\neine Insel machen, auf der deine Brüder in Frieden\nund Wohlstand leben können, wenn sie zurückkehren.'),
+    (20, 'Geschäft abgeschlossen. Ich arbeite an den Gebieten\naußerhalb des Passes, während du die inneren bearbeitest.'),
+    (21, 'Erledigt. Auf unsere weitere Zusammenarbeit.'),
+],
+"Text/Event/Mura/Hataori/Kokorowa.csvtxt": [
+    (1, 'Du bist wirklich geschickt, Yui. Wie hast du\ngelernt, solche Gewänder zu weben?'),
+    (2, 'Äh... Ich hab nur nachgemacht, was ich gesehen hab.'),
+    (3, 'Das ist noch erstaunlicher!'),
+    (4, 'Ahaha...'),
+    (5, 'Wann geht sie endlich weg...?'),
+    (6, 'Wäre es in Ordnung, dir bei der Arbeit zuzusehen?'),
+    (7, 'Uhhh...'),
+    (8, 'Entschuldige, Lady Kokorowa, aber ich mag es\nnicht, wenn Leute mir zuschauen.'),
+    (9, 'I-Ich verstehe...'),
+    (10, 'Ich bin diejenige, die sich entschuldigen sollte.\nWenn ich darüber nachdenke, tue ich mich auch\nselbst schwer, wenn andere mir beim Arbeiten zusehen.'),
+    (11, 'Ich hätte dich nicht um etwas bitten sollen,\ndem ich selbst nicht nachkommen kann.'),
+    (12, 'Ist schon okay. Freut mich, dass du so interessiert bist.'),
+    (13, 'Ich versuch mal, dir auch irgendwann ein Outfit zu machen.'),
+    (14, 'Du würdest das tun?!'),
+    (15, 'Oh, ich frage mich, wie das aussehen wird!\nIch kann es kaum erwarten zu sehen.'),
+    (16, 'Ich liebe Zahnräder und Rädchen, aber vielleicht\nwäre mal ein anderes Muster schön.\nOder ich lasse mir etwas machen, das zu euch\nallen passt...'),
+    (17, 'Ähm... Lady Kokorowa?'),
+    (18, '*murmle* *mumble*'),
+    (19, 'Ahaha... Nimm dir Zeit und überleg dir was.'),
+    (20, 'Die ist nett und so, aber ich weiß manchmal\nnicht, wie ich mit ihr umgehen soll.'),
+],
+"Text/Event/Mura/Kaji/Kokorowa.csvtxt": [
+    (1, 'Dieser schwarze Schmiedeofen deiner wird heißer als alles,\nwas ich je gesehen hab. Mein aus Lehm kann nicht mithalten.'),
+    (2, 'Um die Hitzeproduktion zu steigern, muss der Ofen\nselbst in der Lage sein, die Hitze\nauszuhalten.'),
+    (3, 'Ich muss sagen, ich bin beeindruckt, wie geschickt\ngeworden bist, obwohl du kein\nVorwissen von Schmieden hattest.'),
+    (4, 'Ja, nun, Ashigumo war ein guter Lehrer. Er hat\nmich mit den verschiedenen Arten von Öfen vertraut gemacht.'),
+    (5, 'Das Restliche habe ich mir selbst erschlossen,\nindem ich drangeblieben bin und verschiedene Dinge ausprobiert habe.'),
+    (6, 'Rückblickend war ich vielleicht\nschon immer für den Handwerkerberuf bestimmt.'),
+    (7, 'Ja... Wenn Dinge nicht laufen wie geplant,\nodersuchst du dich zu verbessern, ist es\nwichtig, daran zurückzudenken, wie du angefangen hast.'),
+    (8, 'Du bist auch beim Schmieden?'),
+    (9, 'Meine Mechanismen helfen mir bei Grundarbeiten,\naber ich muss auf andere Schmiedegötter vertrauen,\nwenn meine Bauteile einen feineren Touch erfordern.'),
+    (10, 'Jedoch kann ich manches selbst tun,\nsolange ich die Logik oder Arithmetik dahinter erfasse.\nGeschickte Schmiedegötter besitzen solches Wissen\nvon Natur aus.'),
+    (11, 'Blegh. Mathe, hä...'),
+    (12, 'Ja. Ohne ihn wäre es schwer zu\nbestimmen, wie lang etwa eine Achse sein muss,\num Zahnräder zum Eingriff zu bringen.'),
+    (13, 'Ja... Ich hatte das Gefühl, dass man Mathe\nbraucht, um irgendwas Beeindruckendes hinzubekommen.'),
+    (14, 'Es ist wirklich ziemlich vergnüglich,\nwenn du den Dreh raus hast.'),
+    (15, 'Jetzt klangst du wie Myrthe...'),
+    (16, '*seufz* Ich schätze, ich muss es aussitzen\nund es einfach versuchen.'),
+    (17, 'Hee hee. Ich werde tun, was ich kann, um dir zu helfen.'),
+],
+}
+
+DE_BETA_A3 = {}
+for _p, _pairs in _FILES.items():
+    _rows = [r for r, _ in _pairs]
+    assert _rows == list(range(1, len(_pairs) + 1)), _p
+    DE_BETA_A3.update({(_p + "#beta", f"English#{r}"): t for r, t in _pairs})

@@ -65,6 +65,10 @@ from de_keyitem import DE_KEYITEM
 from de_cooking import DE_COOKING
 from de_worldmap_landmark import DE_WORLDMAP_LM
 from de_credits import DE_CREDITS
+from de_beta_a1 import DE_BETA_A1
+from de_beta_a2 import DE_BETA_A2
+from de_beta_a3 import DE_BETA_A3
+from de_beta_b import DE_BETA_B
 
 DE = {}
 for table in (DE_A, DE_B, DE_C, DE_PAUSE, DE_SAVELOAD, DE_COMMON,
@@ -81,7 +85,8 @@ for table in (DE_A, DE_B, DE_C, DE_PAUSE, DE_SAVELOAD, DE_COMMON,
               DE_REST_C1, DE_REST_C2,
               DE_QUEST, DE_ACHIEVEMENT, DE_MATERIAL,
               DE_ENCHANT, DE_FOOD, DE_KEYITEM,
-              DE_COOKING, DE_WORLDMAP_LM, DE_CREDITS):
+              DE_COOKING, DE_WORLDMAP_LM, DE_CREDITS,
+              DE_BETA_A1, DE_BETA_A2, DE_BETA_A3, DE_BETA_B):
     for _k, _v in table.items():
         if _k in DE and DE[_k] != _v:
             print(f"WARNUNG: doppelter Tabellen-Schluessel, Wert wird ueberschrieben: {_k!r}")
