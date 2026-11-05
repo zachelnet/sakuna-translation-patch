@@ -73,7 +73,7 @@ The backups are simply copied back; the game is retail again.
 | Game still shows Spanish/English | `TaueConfig.json` must contain `"Language": "Sp"` (the script sets this automatically); restart the game |
 | Game crashes / broken texts | Run `RESTORE.bat` — back to the original |
 | Ran Steam „Verify integrity of game files" | Steam restored the retail archives; simply run `INSTALL.bat` again (backups are untouched) |
-| **Game update / Steam beta branch switched** | `install.py` detects changed rows automatically and re-keys the tables via the `de_rebase.py` mask (matching by code + source text). If the mask is missing, the script aborts hard instead of writing wrong German. Brand-new rows stay Spanish/English for now – that is the new translation workload. |
+| **Game update / Steam beta branch switched** | `install.py` detects changed rows automatically and re-keys the tables via the `de_rebase.py` mask (matching by code + source text). If the mask is missing, the script aborts hard instead of writing wrong German. Rows added by a *future* update stay untranslated until `make_rebase.py` and new table entries cover them (the current open-beta content is fully translated). |
 | Linux + Proton | The game still lives in `…/steamapps/common/…` — default paths are detected; otherwise pass `--game-dir` |
 
 ---
@@ -142,9 +142,9 @@ notes, not translation errors.
 | **`make_rebase.py`** | Generates `de_rebase.py` when a game update shifted rows (old↔new match by code + source text) |
 | **`de_rebase.py`** | AUTO-generated row mask; only active on beta/update builds, ignored on retail |
 | `sakuna.py` | Core tool: ARC read/write (TGP0 + LZ4), CSV↔PO, validation, CLI |
-| `apply_de.py` | Injects all registered `de_*.py` tables into the PO files |
-| `de_*.py` (52) | Translation tables: `(full path, "English#<row>") -> German text`; `None` = intentionally skipped |
-| `de_beta_*.py` (21) | Beta-only rows with `#beta` keys (active only on update/beta builds; see table format) |
+| `apply_de.py` | Injects all registered tables from `tables/` into the PO files |
+| `tables/` (53) | Retail translation tables: `(full path, "English#<row>") -> German text`; `None` = intentionally skipped |
+| `tables/beta/` (25) | Beta-only rows with `#beta` keys (active only on update/beta builds) |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | local build artifacts – kept out of the repo via `.gitignore` |
 
 ### Table format

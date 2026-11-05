@@ -11,7 +11,10 @@ Fehlt beides, wird der Eintrag unveraendert gelassen und gemeldet.
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _HERE)
+sys.path.insert(0, os.path.join(_HERE, "tables"))        # Retail-Tabellen
+sys.path.insert(0, os.path.join(_HERE, "tables", "beta"))  # nur-Beta-Tabellen
 import sakuna as S
 from de_option_title_system import DE as DE_A
 from de_game import DE_GAME as DE_B

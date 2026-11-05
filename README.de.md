@@ -73,7 +73,7 @@ Die Backups werden einfach zurückkopiert; das Spiel ist wieder Retail.
 | Im Spiel immer noch Spanisch/Englisch | In `TaueConfig.json` muss `"Language": "Sp"` stehen (das Skript setzt das automatisch); Spiel danach neu starten |
 | Spiel stürzt ab / Texte kaputt | `RESTORE.bat` ausführen — zurück zum Original |
 | Steam „Datei-Integrität prüfen" ausgeführt | Steam hat die Originaldateien wiederhergestellt; einfach `INSTALL.bat` nochmal laufen lassen (Backups bleiben davon unberührt) |
-| **Spiel-Update / Steam-Beta gewechselt** | `install.py` erkennt geänderte Zeilen automatisch und ordnet die Tabellen über die Maske `de_rebase.py` neu zu (Abgleich per Code + Quelltext). Fehlt die Maske, bricht das Skript hart ab, statt falsches Deutsch zu schreiben. Ganz neue Zeilen erscheinen vorerst weiterhin spanisch/english – das ist der neue Übersetzungsbedarf. |
+| **Spiel-Update / Steam-Beta gewechselt** | `install.py` erkennt geänderte Zeilen automatisch und ordnet die Tabellen über die Maske `de_rebase.py` neu zu (Abgleich per Code + Quelltext). Fehlt die Maske, bricht das Skript hart ab, statt falsches Deutsch zu schreiben. Zeilen eines *künftigen* Updates bleiben unübersetzt, bis `make_rebase.py` und neue Tabelleneinträge sie abdecken (der aktuelle OpenBeta-Inhalt ist vollständig übersetzt). |
 | Linux + Proton | Das Spiel lebt trotz Proton in `…/steamapps/common/…` – die Standardpfade werden erkannt; sonst `--game-dir` |
 
 ---
@@ -142,9 +142,9 @@ das sind Feinmeldungen, keine Übersetzungsfehler.
 | **`make_rebase.py`** | Erzeugt `de_rebase.py`, wenn ein Spiel-Update die Zeilen verschoben hat (Abgleich Alt↔Neu über Code + Quelltext) |
 | **`de_rebase.py`** | AUTO-erzeugte Zeilenmaske; wird nur beim Beta-/Update-Stand aktiv, auf Retail ignoriert |
 | `sakuna.py` | Kernwerkzeug: ARC lesen/schreiben (TGP0 + LZ4), CSV↔PO, Validierung, CLI |
-| `apply_de.py` | Tragt alle registrierten `de_*.py`-Tabellen in die PO-Dateien ein |
-| `de_*.py` (52) | Übersetzungstabellen: `(voller Pfad, "English#<Zeile>") -> deutscher Text`; `None` = absichtlich übersprungen |
-| `de_beta_*.py` (21) | Nur-Beta-Zeilen mit `#beta`-Keys (aktiv nur im Update-/Beta-Modus; siehe Tabellenformat) |
+| `apply_de.py` | Tragt alle registrierten Tabellen aus `tables/` in die PO-Dateien ein |
+| `tables/` (53) | Retail-Übersetzungstabellen: `(voller Pfad, "English#<Zeile>") -> deutscher Text`; `None` = absichtlich übersprungen |
+| `tables/beta/` (25) | Nur-Beta-Zeilen mit `#beta`-Keys (aktiv nur im Update-/Beta-Modus) |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | lokale Build-Artefakte – via `.gitignore` **nie im Repo** |
 
 ### Tabellenformat
