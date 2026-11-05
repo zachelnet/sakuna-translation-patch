@@ -89,9 +89,10 @@ The backups are simply copied back; the game is retail again.
 Checksums of the tested builds (SHA-256, first 16 characters):
 `Text.arc` = `61e75984e8838cc4`, `Common.arc` = `31fbc34915161d94`
 (reproducible by the installer — building from retail is byte-identical).
-The **open beta build** is supported as well (rebase mask, tested):
-`Text.arc` = `c423cfb687221691`, `Common.arc` = `02a66d95d4b97bbc`; the new
-beta rows there are still untranslated (2072 + 33 entries of new workload).
+**OpenBeta build (fully translated, 2105 new entries in batches β1–β6):**
+`Text.arc` = `cfa6d23f3dbaa42c`, `Common.arc` = `97c25a8e1af739c9`
+(10231 entries verified, 0 mismatches; retail mode remains byte-identical at
+5734 – the `#beta` tables are inert there).
 
 ---
 
@@ -143,6 +144,7 @@ notes, not translation errors.
 | `sakuna.py` | Core tool: ARC read/write (TGP0 + LZ4), CSV↔PO, validation, CLI |
 | `apply_de.py` | Injects all registered `de_*.py` tables into the PO files |
 | `de_*.py` (52) | Translation tables: `(full path, "English#<row>") -> German text`; `None` = intentionally skipped |
+| `de_beta_*.py` (21) | Beta-only rows with `#beta` keys (active only on update/beta builds; see table format) |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | local build artifacts – kept out of the repo via `.gitignore` |
 
 ### Table format
@@ -159,6 +161,10 @@ assert [r for r, _ in _PAIRS] == list(range(1, N + 1))
 ```
 
 Contribution rules:
+
+- **Beta rows** use keys of the form `(path + "#beta", "English#<row>")`. They
+  are only reachable while the beta/update markers are present (active mode)
+  and win over the rebase mask — never register a beta row under a plain key.
 
 - **Always key by full archive path** when the file name is not unique
   (there are three `Yui` files under `Event/Mura/`).

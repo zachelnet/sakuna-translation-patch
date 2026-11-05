@@ -89,9 +89,10 @@ Zusammen **8196 übersetzte Strings**, 52 Übersetzungstabellen.
 Prüfsummen der getesteten Builds (SHA-256, erste 16 Zeichen):
 `Text.arc` = `61e75984e8838cc4`, `Common.arc` = `31fbc34915161d94`
 (vom Installations-Skript reproduzierbar — der Bau aus Retail ist byte-identisch).
-Der **OpenBeta-Stand** wird ebenfalls unterstützt (Rebase-Maske, getestet):
-`Text.arc` = `c423cfb687221691`, `Common.arc` = `02a66d95d4b97bbc`; neue
-Beta-Zeilen sind dort noch unübersetzt (2072 + 33 Einträge Restbedarf).
+**OpenBeta-Stand (vollständig übersetzt, 2105 neue Einträge in Batches β1–β6):**
+`Text.arc` = `cfa6d23f3dbaa42c`, `Common.arc` = `97c25a8e1af739c9`
+(10231 Einträge verifiziert, 0 Abweichungen; der Retail-Modus bleibt byte-identisch
+bei 5734 — die `#beta`-Tabellen sind dort inaktiv).
 
 ---
 
@@ -143,6 +144,7 @@ das sind Feinmeldungen, keine Übersetzungsfehler.
 | `sakuna.py` | Kernwerkzeug: ARC lesen/schreiben (TGP0 + LZ4), CSV↔PO, Validierung, CLI |
 | `apply_de.py` | Tragt alle registrierten `de_*.py`-Tabellen in die PO-Dateien ein |
 | `de_*.py` (52) | Übersetzungstabellen: `(voller Pfad, "English#<Zeile>") -> deutscher Text`; `None` = absichtlich übersprungen |
+| `de_beta_*.py` (21) | Nur-Beta-Zeilen mit `#beta`-Keys (aktiv nur im Update-/Beta-Modus; siehe Tabellenformat) |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | lokale Build-Artefakte – via `.gitignore` **nie im Repo** |
 
 ### Tabellenformat
@@ -159,6 +161,10 @@ assert [r for r, _ in _PAIRS] == list(range(1, N + 1))
 ```
 
 Regeln für Beiträge:
+
+- **Beta-Zeilen** bekommen Schlüssel der Form `(Pfad + "#beta", "English#<Zeile>")`.
+  Sie sind nur bei aktivem Beta-/Update-Stand erreichbar (Marker) und gehen der
+  Rebase-Maske vor — eine Beta-Zeile niemals unter einem normalen Key registrieren.
 
 - **Schlüssel immer mit vollem Archivpfad**, wenn der Dateiname nicht eindeutig
   ist (in `Event/Mura/` gibt es drei Dateien `Yui`).
