@@ -1,0 +1,19 @@
+# Spieldaten und Artefakte – niemals ins Repo (Urheberrecht + Größe)
+work/
+mod/
+po/
+poCommon/
+*.arc
+*.bak-original
+*.bak
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editor/OS
+.idea/
+.vscode/
+.DS_Store
