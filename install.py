@@ -310,19 +310,14 @@ def build(game: Path, text_src: Path, common_src: Path, lang: str = "de") -> Non
     shutil.copytree(text_src, ROOT / "work" / "Text")
     shutil.copytree(common_src, ROOT / "work" / "Common")
 
-    # Spielstand-Kompatitaet: Update/Beta erkennen, wenn keine Maske hinterlegt
+    # Update-/Beta-Stand: kein Guard noetig - Code-Keys schuetzen von selbst;
+    # neue/unuebersetzte Zeilen landen lediglich im Missing-Report.
     beta_hit = (
         (ROOT / "work/Text/Text/Event/Miyako/Kamuhitsuki.csvtxt").exists()
         or (ROOT / "work/Common/Param/Game/EventStarter.csv").exists()
     )
-    if beta_hit and not (ROOT / "de_rebase.py").exists():
-        die(
-            "Dieser Spielstand (Update/Beta) hat geaenderte Zeilen, aber\n"
-            "        de_rebase.py fehlt. Ein normaler Lauf wuerde Zeilen falsch\n"
-            "        zuordnen. Maske mit make_rebase.py erzeugen und erneut starten."
-        )
     if beta_hit:
-        info("Update-/Beta-Stand erkannt - Rebase-Maske wird verwendet")
+        info("Update-/Beta-Stand erkannt (#beta-Tabellen werden genutzt)")
 
     info("Schritt 2/6: PO-Dateien erzeugen (msgids aus deiner Kopie)")
     if run(["sakuna.py", "po-dir", "work/Text", "po"]) != 0:

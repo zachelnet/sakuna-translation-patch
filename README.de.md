@@ -73,7 +73,7 @@ Die Backups werden einfach zurückkopiert; das Spiel ist wieder Retail.
 | Im Spiel immer noch Spanisch/Englisch | In `TaueConfig.json` muss `"Language": "Sp"` stehen (das Skript setzt das automatisch); Spiel danach neu starten |
 | Spiel stürzt ab / Texte kaputt | `RESTORE.bat` ausführen — zurück zum Original |
 | Steam „Datei-Integrität prüfen" ausgeführt | Steam hat die Originaldateien wiederhergestellt; einfach `INSTALL.bat` nochmal laufen lassen (Backups bleiben davon unberührt) |
-| **Spiel-Update / Steam-Beta gewechselt** | `install.py` erkennt geänderte Zeilen automatisch und ordnet die Tabellen über die Maske `de_rebase.py` neu zu (Abgleich per Code + Quelltext). Fehlt die Maske, bricht das Skript hart ab, statt falsches Deutsch zu schreiben. Zeilen eines *künftigen* Updates bleiben unübersetzt, bis `make_rebase.py` und neue Tabelleneinträge sie abdecken (der aktuelle OpenBeta-Inhalt ist vollständig übersetzt). |
+| **Spiel-Update / Steam-Beta gewechselt** | Tabellen sind nach **Zeilencodes** geschlüsselt, nicht nach Zeilenindex — verschobene/eingefügte Zeilen behalten ihre Übersetzung automatisch. *Neue* Zeilen tauchen im Missing-Report von `apply_de` auf und bleiben spanisch/englisch, bis sie übersetzt sind; nichts wird falsch zugeordnet. Der aktuelle OpenBeta-Inhalt ist vollständig übersetzt. |
 | Linux + Proton | Das Spiel lebt trotz Proton in `…/steamapps/common/…` – die Standardpfade werden erkannt; sonst `--game-dir` |
 
 ---
@@ -139,32 +139,34 @@ das sind Feinmeldungen, keine Übersetzungsfehler.
 |---|---|
 | **`install.py`** | **Ein-Kommando-Installer**: Pfadsuche, Dependencies, Backup, Build, Installation, Sprache, `--restore` |
 | `INSTALL.bat` / `RESTORE.bat` | Windows-Doppelklick-Wrappers für `install.py` |
-| **`make_rebase.py`** | Erzeugt `de_rebase.py`, wenn ein Spiel-Update die Zeilen verschoben hat (Abgleich Alt↔Neu über Code + Quelltext) |
-| **`de_rebase.py`** | AUTO-erzeugte Zeilenmaske; wird nur beim Beta-/Update-Stand aktiv, auf Retail ignoriert |
+| **`migrate_keys.py`** | Einmal-Werkzeug, das alle Tabellen von Zeilen- auf Code-Schlüssel umstellte; dokumentiert zugleich das Schlüssel-Schema |
 | `sakuna.py` | Kernwerkzeug: ARC lesen/schreiben (TGP0 + LZ4), CSV↔PO, Validierung, CLI |
 | `apply_de.py` | Tragt alle registrierten Tabellen aus `tables/` in die PO-Dateien ein |
 | `tables/` (52) | Retail-Übersetzungstabellen: `(voller Pfad, "English#<Zeile>") -> deutscher Text`; `None` = absichtlich übersprungen |
-| `tables/beta/` (25) | Nur-Beta-Zeilen mit `#beta`-Keys (aktiv nur im Update-/Beta-Modus) |
+| `tables/beta/` (25) | Nur-Beta-Zeilen — gleiches Schlüssel-Schema, der *Root* trägt `#beta`-Suffix; aktiv nur im Update-/Beta-Modus |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | lokale Build-Artefakte – via `.gitignore` **nie im Repo** |
 
 ### Tabellenformat
 
 ```python
 _PATH = "Text/Event/Mura/Soto/Yui.csvtxt"
-_PAIRS = [
-    (1, 'Erste deutsche Zeile'),
-    (2, 'Zweite Zeile\nmit Umbruch'),
-]
-DE = {(_PATH, f"English#{r}"): t for r, t in _PAIRS}
-assert len(_PAIRS) == N
-assert [r for r, _ in _PAIRS] == list(range(1, N + 1))
+# CODE = erste Spalte der Quellzeile (siehe migrate_keys.py / CSV)
+DE = {
+    (_PATH, "English#c:04010302_12"): 'Erste deutsche Zeile',
+    (_PATH, "English#c:04010302_13"): 'Zweite Zeile\nmit Umbruch',
+}
+# ohne eindeutigen Code:        (_PATH, "English#r:<Zeile>")
+# Beta-Zeilen (nur tables/de/beta/):  (_PATH + "#beta", "English#c:CODE")
 ```
 
 Regeln für Beiträge:
 
-- **Beta-Zeilen** bekommen Schlüssel der Form `(Pfad + "#beta", "English#<Zeile>")`.
-  Sie sind nur bei aktivem Beta-/Update-Stand erreichbar (Marker) und gehen der
-  Rebase-Maske vor — eine Beta-Zeile niemals unter einem normalen Key registrieren.
+- **Schlüssel sind codenbasiert:** `(_PATH, "English#c:CODE")` mit `CODE` =
+  erste CSV-Spalte der Quellzeile (`#r:<Zeile>` nur, wenn diese Spalte leer oder
+  dateiweit wiederholt ist). Zeilenindizes verrutschen bei Updates, Codes nicht.
+- **Beta-Zeilen** behalten am *Root* ein `#beta`: `(_PATH + "#beta",
+  "English#c:CODE")`. Nur bei aktivem Beta-/Update-Stand erreichbar und gehen
+  dem normalen Root vor — Beta-Inhalt niemals unter einem normalen Key registrieren.
 
 - **Schlüssel immer mit vollem Archivpfad**, wenn der Dateiname nicht eindeutig
   ist (in `Event/Mura/` gibt es drei Dateien `Yui`).

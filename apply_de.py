@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Trägt alle deutschen Strings in alle .po-Dateien unter po/ ein.
+"""Traegt alle Uebersetzungen in die .po-Dateien eines PO-Wurzelverzeichnisses ein.
 
-Lookup pro Eintrag:
-  1. (voller Archivpfad, msgctxt)   - fuer Dateien mit doppeltem Namen
-  2. (Dateiname ohne Endung, msgctxt) - fuer die aelten Tabellen
+Aufloesung pro Eintrag (siehe resolve): Code-Key "Feld#c:CODE" zuerst,
+Zeilen-Key "Feld#r:ZEILE" fuer Quellzeilen ohne eindeutigen Code; dazu die
+Roots Pfad, Basenamen und (nur bei aktivem Beta-/Update-Stand) "#beta".
+Kein Treffer -> Eintrag bleibt unveraendert und wird gemeldet.
 
-Fehlt beides, wird der Eintrag unveraendert gelassen und gemeldet.
+Tabellen kommen aus tables/<lang>/ und tables/<lang>/beta/ (--lang, Default de).
 """
 
 import argparse
@@ -62,18 +63,34 @@ def load_tables(lang: str = "de") -> dict:
 DE = {}
 
 # --------------------------------------------------------------------------- #
-# Rebase (Update-/Beta-Spielstaende): apply_de merkt sich (Datei, Feld#NEUE
-# Zeile) -> (alter Tabellen-Schluessel). Nur aktiv, wenn Marker-Dateien
-# vorhanden sind, die es ausschliesslich im neuen Stand gibt; auf dem alten
-# Stand wird die Maske ignoriert (Identitaet).
+# Code-basierte Aufloesung (stand- und zeilenverschiebungsunabhaengig):
+#   1. "#beta"-Root (nur im Beta-/Update-Stand; darf neben Retail-Werten
+#      existieren, z.B. Credits + KING)
+#   2. normaler Pfad-/Basename-Root
+# je Root zuerst Code-Key ("Feld#c:CODE"), dann Zeilen-Key ("Feld#r:ZEILE")
+# fuer Quellzeilen ohne eindeutigen Code (z.B. Travel mit konstanter Bg-Spalte).
+# Kein Treffer -> _MISSING (neuer/unuebersetzter Inhalt).
 # --------------------------------------------------------------------------- #
 
-REBASE = {}
-try:
-    from de_rebase import REBASE as _REBASE
-    REBASE = _REBASE
-except ImportError:
-    pass
+def resolve(rel: str, base: str, ctx: str, code, active: bool):
+    """Liefert Tabellenwert, None (absichtlich leer) oder _MISSING."""
+    if "#" not in ctx:
+        return _MISSING
+    field, row = ctx.rsplit("#", 1)
+    roots = ([rel + "#beta"] if active else []) + [rel]
+    if base != rel:
+        roots.append(base)
+    if code is not None and code != "":
+        forms = (f"{field}#c:{code}", f"{field}#r:{row}")
+    else:
+        forms = (f"{field}#r:{row}",)
+    for r in roots:
+        for f in forms:
+            k = (r, f)
+            if k in DE:
+                return DE[k]
+    return _MISSING
+
 
 BETA_MARKERS = (
     "Text/Event/Miyako/Kamuhitsuki.po",   # nur im Beta-/Update-Stand vorhanden
@@ -135,27 +152,10 @@ def main(argv=None) -> int:
     filled = 0
     missing = []
     checked = 0
-    active = False
-    if _beta_active(po_root):
-        if not REBASE:
-            print(
-                "FEHLER: Spielstand mit geaenderten Zeilen erkannt (Update/Beta),\n"
-                "        aber de_rebase.py fehlt oder ist leer. Ohne Maske waeren\n"
-                "        Zeilen falsch zugeordnet - abgebrochen.\n"
-                "        Neuen Stand mit make_rebase.py abdecken."
-            )
-            return 2
-        active = True
-        print(f"Update-/Beta-Stand erkannt - Rebase aktiv: {len(REBASE)} Zuordnungen.")
-    # Alle Dateien, fuer die im aktiven Modus NUR Beta-Key/Rebase gilt
-    # (REBASE-Ziele + "#beta"-Tabellen). Alles andere darf klassisch greifen.
-    masked_rels = set()
+    active = _beta_active(po_root)
     if active:
-        masked_rels = {k[0] for k in REBASE} | {
-            k[0][: -len("#beta")]
-            for k in DE
-            if isinstance(k[0], str) and k[0].endswith("#beta")
-        }
+        n_beta = sum(1 for k in DE if isinstance(k[0], str) and k[0].endswith("#beta"))
+        print(f"Beta-/Update-Stand erkannt - #beta-Tabellen aktiv: {n_beta} Eintraege.")
     for dirpath, _dirs, files in os.walk(po_root):
         for fn in sorted(files):
             if not fn.endswith(".po"):
@@ -169,30 +169,7 @@ def main(argv=None) -> int:
             base = os.path.splitext(os.path.basename(archive_path))[0]
             checked += 1
             for e in entries:
-                key_path = (archive_path, e["msgctxt"])
-                key_base = (base, e["msgctxt"])
-                val = _UNSET
-                if active:
-                    # 1) Beta-eigener Eintrag (gewinnt auch ueber Rebase)
-                    bk = (archive_path + "#beta", e["msgctxt"])
-                    if bk in DE:
-                        val = DE[bk]
-                    else:
-                        # 2) Zeilen-Umschluesselung der Maske
-                        nk = REBASE.get(key_path)
-                        if nk is not None:
-                            val = DE.get(nk, _MISSING)
-                        # 3) maskierte Datei, Key unbekannt -> neuer Inhalt
-                        elif archive_path in masked_rels:
-                            val = _MISSING
-                if val is _UNSET:
-                    # 4) klassischer Fallback (Retail/Identitaet)
-                    if key_path in DE:
-                        val = DE[key_path]
-                    elif key_base in DE:
-                        val = DE[key_base]
-                    else:
-                        val = _MISSING
+                val = resolve(archive_path, base, e["msgctxt"], e.get("code"), active)
                 if val is _MISSING:
                     missing.append((archive_path, e["msgctxt"], e["msgid"]))
                     continue

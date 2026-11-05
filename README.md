@@ -73,7 +73,7 @@ The backups are simply copied back; the game is retail again.
 | Game still shows Spanish/English | `TaueConfig.json` must contain `"Language": "Sp"` (the script sets this automatically); restart the game |
 | Game crashes / broken texts | Run `RESTORE.bat` — back to the original |
 | Ran Steam „Verify integrity of game files" | Steam restored the retail archives; simply run `INSTALL.bat` again (backups are untouched) |
-| **Game update / Steam beta branch switched** | `install.py` detects changed rows automatically and re-keys the tables via the `de_rebase.py` mask (matching by code + source text). If the mask is missing, the script aborts hard instead of writing wrong German. Rows added by a *future* update stay untranslated until `make_rebase.py` and new table entries cover them (the current open-beta content is fully translated). |
+| **Game update / Steam beta branch switched** | Tables are keyed by **row codes**, not row indexes — reordered/inserted rows keep their translations automatically. Rows *added* by an update show up in `apply_de`'s missing list and stay Spanish/English until translated; nothing is mis-paired. The current open-beta content is fully translated. |
 | Linux + Proton | The game still lives in `…/steamapps/common/…` — default paths are detected; otherwise pass `--game-dir` |
 
 ---
@@ -139,32 +139,34 @@ notes, not translation errors.
 |---|---|
 | **`install.py`** | **One-command installer**: path detection, dependencies, backup, build, install, language, `--restore` |
 | `INSTALL.bat` / `RESTORE.bat` | Windows double-click wrappers for `install.py` |
-| **`make_rebase.py`** | Generates `de_rebase.py` when a game update shifted rows (old↔new match by code + source text) |
-| **`de_rebase.py`** | AUTO-generated row mask; only active on beta/update builds, ignored on retail |
+| **`migrate_keys.py`** | One-shot tool that converted all tables from row-index keys to code keys; documents the key scheme |
 | `sakuna.py` | Core tool: ARC read/write (TGP0 + LZ4), CSV↔PO, validation, CLI |
 | `apply_de.py` | Injects all registered tables from `tables/` into the PO files |
 | `tables/` (52) | Retail translation tables: `(full path, "English#<row>") -> German text`; `None` = intentionally skipped |
-| `tables/beta/` (25) | Beta-only rows with `#beta` keys (active only on update/beta builds) |
+| `tables/beta/` (25) | Beta-only rows — same key scheme, the *root* carries a `#beta` suffix; active only on update/beta builds |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | local build artifacts – kept out of the repo via `.gitignore` |
 
 ### Table format
 
 ```python
 _PATH = "Text/Event/Mura/Soto/Yui.csvtxt"
-_PAIRS = [
-    (1, 'First German line'),
-    (2, 'Second line\nwith break'),
-]
-DE = {(_PATH, f"English#{r}"): t for r, t in _PAIRS}
-assert len(_PAIRS) == N
-assert [r for r, _ in _PAIRS] == list(range(1, N + 1))
+# CODE = first CSV column of the source row (see migrate_keys.py / the CSV)
+DE = {
+    (_PATH, "English#c:04010302_12"): 'First German line',
+    (_PATH, "English#c:04010302_13"): 'Second line\nwith break',
+}
+# no/ambiguous code:      (_PATH, "English#r:<row>")
+# beta-only rows:         (_PATH + "#beta", "English#c:CODE")
 ```
 
 Contribution rules:
 
-- **Beta rows** use keys of the form `(path + "#beta", "English#<row>")`. They
-  are only reachable while the beta/update markers are present (active mode)
-  and win over the rebase mask — never register a beta row under a plain key.
+- **Keys are code-based:** `(_PATH, "English#c:CODE")` where `CODE` is the
+  first CSV column of that row (`#r:<row>` only when that column is empty or
+  repeats within the file). Row indexes shift on updates; codes do not.
+- **Beta rows** keep a `#beta` suffix on the *root*: `(_PATH + "#beta",
+  "English#c:CODE")`. Reachable only while beta/update markers are present and
+  they win over the plain root — never register beta content under a plain key.
 
 - **Always key by full archive path** when the file name is not unique
   (there are three `Yui` files under `Event/Mura/`).
