@@ -8,6 +8,7 @@ Lookup pro Eintrag:
 Fehlt beides, wird der Eintrag unveraendert gelassen und gemeldet.
 """
 
+import argparse
 import os
 import sys
 
@@ -16,112 +17,49 @@ sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.join(_HERE, "tables"))        # Retail-Tabellen
 sys.path.insert(0, os.path.join(_HERE, "tables", "beta"))  # nur-Beta-Tabellen
 import sakuna as S
-from de_option_title_system import DE as DE_A
-from de_game import DE_GAME as DE_B
-from de_place import DE_PLACE as DE_C
-from de_pause_save_common import DE_PAUSE, DE_SAVELOAD, DE_COMMON
-from de_worldmap_tanbo import DE_WORLDMAP, DE_TANBO
-from de_soilwork import DE_SOILWORK
-from de_short_events import DE_SHORT
-from de_charactername import DE_CHARNAME
-from de_skills_param import DE_SKILL_ATTACK, DE_SKILL_SOILWORK
-from de_weapon import DE_WEAPON
-from de_armor import DE_ARMOR
-from de_mura_small import DE_MURA
-from de_mura_batch2 import DE_MURA2
-from de_mura_batch3 import DE_MURA3
-from de_mura_batch4 import DE_MURA4
-from de_mura_batch5 import DE_MURA5
-from de_soto_eventmain_a import DE_SOTO_EM_1
-from de_soto_eventmain_b import DE_SOTO_EM_2
-from de_soto_eventsub import DE_SOTO_ES
-from de_soto_kinta import DE_SOTO_KINTA
-from de_ima_mirthe import DE_IMA_MIRTHE
-from de_imaonly_eventmain import DE_IMAONLY_EM
-from de_mura_yui_dojo import DE_YUI, DE_DOJO_ES
-from de_soto_yui import DE_SOTO_YUI
-from de_soto_mirthe import DE_SOTO_MIRTHE
-from de_dinner_a import DE_DINNER_1
-from de_dinner_b import DE_DINNER_2
-from de_dinner_c import DE_DINNER_3A
-from de_dinner_d import DE_DINNER_3B
-from de_ima_eventmain import DE_IMA_EM
-from de_soto_tauemon import DE_SOTO_TAUEMON
-from de_soto_kaimaru import DE_SOTO_KAIMARU
-from de_event_small_a import DE_EVT_A
-from de_event_small_b import DE_EVT_B
-from de_event_small_c import DE_EVT_C
-from de_travel import DE_TRAVEL
-from de_evt_rest_a1 import DE_REST_A1
-from de_evt_rest_a2 import DE_REST_A2
-from de_evt_rest_a3 import DE_REST_A3
-from de_evt_rest_b1 import DE_REST_B1
-from de_evt_rest_b2 import DE_REST_B2
-from de_evt_rest_b3 import DE_REST_B3
-from de_evt_rest_c1 import DE_REST_C1
-from de_evt_rest_c2 import DE_REST_C2
-from de_quest import DE_QUEST
-from de_achievement_material import DE_ACHIEVEMENT, DE_MATERIAL
-from de_enchant import DE_ENCHANT
-from de_food import DE_FOOD
-from de_keyitem import DE_KEYITEM
-from de_cooking import DE_COOKING
-from de_worldmap_landmark import DE_WORLDMAP_LM
-from de_credits import DE_CREDITS
-from de_beta_a1 import DE_BETA_A1
-from de_beta_a2 import DE_BETA_A2
-from de_beta_a3 import DE_BETA_A3
-from de_beta_b import DE_BETA_B
-from de_beta_c1 import DE_BETA_C1
-from de_beta_c2 import DE_BETA_C2
-from de_beta_c3 import DE_BETA_C3
-from de_beta_d import DE_BETA_D
-from de_beta_e1 import DE_BETA_E1
-from de_beta_e2 import DE_BETA_E2
-from de_beta_e3 import DE_BETA_E3
-from de_beta_f1 import DE_BETA_F1
-from de_beta_f2 import DE_BETA_F2
-from de_beta_g1 import DE_BETA_G1
-from de_beta_g2 import DE_BETA_G2
-from de_beta_h1 import DE_BETA_H1
-from de_beta_h2 import DE_BETA_H2
-from de_beta_i1 import DE_BETA_I1
-from de_beta_i2 import DE_BETA_I2
-from de_beta_j1 import DE_BETA_J1
-from de_beta_j2 import DE_BETA_J2
-from de_beta_k1 import DE_BETA_K1
-from de_beta_k2 import DE_BETA_K2
-from de_beta_l1 import DE_BETA_L1
-from de_beta_l2 import DE_BETA_L2
+import glob as _glob
+import importlib.util as _ilu
+
+
+def load_tables(lang: str = "de") -> dict:
+    """Laedt alle Tabellen aus tables/<lang>/ und tables/<lang>/beta/.
+
+    Jede .py-Datei darf ein oder mehrere Dicts mit 2-Tuple-Keys
+    ((pfad_oder_basename, "Feld#...") -> Wert) definieren. Hilfsdaten
+    (_FILES & Co.) mit Nicht-Tuple-Keys werden ignoriert. Neu hinzufuegen
+    heisst: Datei ablegen - kein weiteres Registration noetig.
+    """
+    global DE
+    DE = {}
+    base = os.path.join(_HERE, "tables", lang)
+    for d in (base, os.path.join(base, "beta")):
+        if not os.path.isdir(d):
+            if d != os.path.join(base, "beta"):
+                raise SystemExit(f"Tabellenverzeichnis fehlt: {d}")
+            continue
+        for path in sorted(_glob.glob(os.path.join(d, "*.py"))):
+            name = os.path.splitext(os.path.basename(path))[0]
+            qual = f"sakuna_tbl_{lang}_{os.path.basename(os.path.dirname(d))}_{name}"
+            spec = _ilu.spec_from_file_location(qual, path)
+            mod = _ilu.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            for attr, val in vars(mod).items():
+                if not isinstance(val, dict) or not val:
+                    continue
+                if not all(
+                    isinstance(k, tuple) and len(k) == 2
+                    and isinstance(k[0], str) and isinstance(k[1], str)
+                    for k in val
+                ):
+                    continue
+                for k, v in val.items():
+                    if k in DE and DE[k] != v:
+                        print(f"WARNUNG: doppelter Tabellen-Schluessel, Wert wird ueberschrieben: {k!r}")
+                    DE[k] = v
+    return DE
+
 
 DE = {}
-for table in (DE_A, DE_B, DE_C, DE_PAUSE, DE_SAVELOAD, DE_COMMON,
-              DE_WORLDMAP, DE_TANBO, DE_SOILWORK, DE_SHORT,
-              DE_CHARNAME, DE_SKILL_ATTACK, DE_SKILL_SOILWORK, DE_WEAPON, DE_ARMOR,
-              DE_MURA, DE_MURA2, DE_MURA3, DE_MURA4, DE_MURA5,
-              DE_SOTO_EM_1, DE_SOTO_EM_2, DE_SOTO_ES, DE_SOTO_KINTA,
-              DE_IMA_MIRTHE, DE_IMAONLY_EM, DE_YUI, DE_DOJO_ES,
-              DE_SOTO_YUI, DE_SOTO_MIRTHE, DE_DINNER_1, DE_DINNER_2, DE_DINNER_3A, DE_DINNER_3B,
-              DE_IMA_EM, DE_SOTO_TAUEMON, DE_SOTO_KAIMARU,
-              DE_EVT_A, DE_EVT_B, DE_EVT_C, DE_TRAVEL,
-              DE_REST_A1, DE_REST_A2, DE_REST_A3,
-              DE_REST_B1, DE_REST_B2, DE_REST_B3,
-              DE_REST_C1, DE_REST_C2,
-              DE_QUEST, DE_ACHIEVEMENT, DE_MATERIAL,
-              DE_ENCHANT, DE_FOOD, DE_KEYITEM,
-              DE_COOKING, DE_WORLDMAP_LM, DE_CREDITS,
-              DE_BETA_A1, DE_BETA_A2, DE_BETA_A3, DE_BETA_B,
-              DE_BETA_C1, DE_BETA_C2, DE_BETA_C3, DE_BETA_D,
-              DE_BETA_E1, DE_BETA_E2, DE_BETA_E3,
-              DE_BETA_F1, DE_BETA_F2,
-              DE_BETA_G1, DE_BETA_G2, DE_BETA_H1, DE_BETA_H2,
-              DE_BETA_I1, DE_BETA_I2,
-              DE_BETA_J1, DE_BETA_J2, DE_BETA_K1, DE_BETA_K2,
-              DE_BETA_L1, DE_BETA_L2):
-    for _k, _v in table.items():
-        if _k in DE and DE[_k] != _v:
-            print(f"WARNUNG: doppelter Tabellen-Schluessel, Wert wird ueberschrieben: {_k!r}")
-        DE[_k] = _v
 
 # --------------------------------------------------------------------------- #
 # Rebase (Update-/Beta-Spielstaende): apply_de merkt sich (Datei, Feld#NEUE
@@ -170,12 +108,30 @@ def write_po(path, header, entries):
             fh.write(f'"{k}: {S._po_escape(v)}\\n"\n')
         fh.write("\n")
         for e in entries:
-            fh.write(f'msgctxt "{S._po_escape(e["msgctxt"])}"\n')
+            # Code-Kommentar mitschreiben (Grundlage der Code-Lookups in
+            # parse_po; csv_to_po erzeugt das gleiche Format).
+            ctx = e["msgctxt"]
+            code = e.get("code")
+            if code is not None and "#" in ctx:
+                field, row = ctx.rsplit("#", 1)
+                fh.write(f"#: row:{row} code:{code} field:{field}\n")
+            fh.write(f'msgctxt "{S._po_escape(ctx)}"\n')
             fh.write(f'msgid "{S._po_escape(e["msgid"])}"\n')
             fh.write(f'msgstr "{S._po_escape(e["msgstr"])}"\n\n')
 
 
-def main(po_root: str = "po") -> int:
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(
+        prog="apply_de.py",
+        description="Traegt alle Uebersetzungen in die .po-Dateien eines PO-Wurzelverzeichnisses ein.",
+    )
+    ap.add_argument("po_root", nargs="?", default="po",
+                    help="PO-Wurzelverzeichnis (Standard: po)")
+    ap.add_argument("--lang", default="de",
+                    help="Sprachverzeichnis unter tables/ (Standard: de)")
+    args = ap.parse_args(argv)
+    load_tables(args.lang)
+    po_root = args.po_root
     filled = 0
     missing = []
     checked = 0
@@ -257,4 +213,4 @@ def main(po_root: str = "po") -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else "po"))
+    raise SystemExit(main(sys.argv[1:]))

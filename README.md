@@ -143,7 +143,7 @@ notes, not translation errors.
 | **`de_rebase.py`** | AUTO-generated row mask; only active on beta/update builds, ignored on retail |
 | `sakuna.py` | Core tool: ARC read/write (TGP0 + LZ4), CSV↔PO, validation, CLI |
 | `apply_de.py` | Injects all registered tables from `tables/` into the PO files |
-| `tables/` (53) | Retail translation tables: `(full path, "English#<row>") -> German text`; `None` = intentionally skipped |
+| `tables/` (52) | Retail translation tables: `(full path, "English#<row>") -> German text`; `None` = intentionally skipped |
 | `tables/beta/` (25) | Beta-only rows with `#beta` keys (active only on update/beta builds) |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | local build artifacts – kept out of the repo via `.gitignore` |
 

@@ -32,6 +32,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import sakuna as S
+
 ROOT = Path(__file__).resolve().parent
 GAME_DIRNAME = "Sakuna Of Rice and Ruin"
 BACKUP_SUFFIX = ".bak-original"
@@ -266,7 +268,40 @@ def set_language(game: Path, lang: str) -> None:
 # Build
 # --------------------------------------------------------------------------- #
 
-def build(game: Path, text_src: Path, common_src: Path) -> None:
+def status(lang: str, game: Path | None) -> None:
+    """Nur-Anzeige: Tabellen, PO-Bestand, installierte Pruefsummen."""
+    print(f"Sprache (tables): {lang}")
+    tdir = ROOT / "tables" / lang
+    n_r = len(list(tdir.glob("*.py"))) if tdir.is_dir() else 0
+    n_b = len(list((tdir / "beta").glob("*.py"))) if (tdir / "beta").is_dir() else 0
+    print(f"Tabellen: {n_r} + {n_b} Beta")
+    for root in ("po", "poCommon"):
+        p = ROOT / root
+        if not p.is_dir():
+            print(f"{root}: noch nicht erzeugt (erster Lauf baut es auf)")
+            continue
+        tot = fl = n = 0
+        for dp, _d, fs in os.walk(p):
+            for f in fs:
+                if f.endswith(".po"):
+                    n += 1
+                    _h, e = S.parse_po(os.path.join(dp, f))
+                    tot += len(e)
+                    fl += sum(1 for x in e if x["msgstr"])
+        print(f"{root}: {fl}/{tot} uebersetzt in {n} POs ({tot - fl} leer = offen oder None)")
+    if game:
+        for name in ("Text.arc", "Common.arc"):
+            arc = game / "dataWin" / name
+            bak = game / "dataWin" / (name + BACKUP_SUFFIX)
+            if arc.exists():
+                print(f"{name}: {sha16(arc)}" + ("  [Backup ok]" if bak.exists() else "  [KEIN BACKUP!]"))
+            else:
+                print(f"{name}: fehlt")
+    else:
+        print("Spiel: nicht gefunden")
+
+
+def build(game: Path, text_src: Path, common_src: Path, lang: str = "de") -> None:
     # Alte Artefakte weg – werden sofort frisch neu aufgebaut (beide Baeume).
     for d in BUILD_DIRS:
         shutil.rmtree(ROOT / d, ignore_errors=True)
@@ -297,7 +332,7 @@ def build(game: Path, text_src: Path, common_src: Path) -> None:
 
     info("Schritt 3/6: deutsche Tabellen einspielen (apply_de)")
     for root in ("po", "poCommon"):
-        rc = run(["apply_de.py", root])
+        rc = run(["apply_de.py", root, "--lang", lang])
         if rc not in (0, 1):
             die(f"apply_de {root} fehlgeschlagen (Exit {rc})")
         if rc == 1:
@@ -330,9 +365,14 @@ def main() -> int:
     ap.add_argument("--yes", action="store_true", help="keine Rueckfragen")
     ap.add_argument("--keep-language", action="store_true", help="TaueConfig.json nicht anfassen")
     ap.add_argument("--language", default="Sp", help="Sprachcode (Standard: Sp)")
+    ap.add_argument("--lang", default="de", help="Sprachverzeichnis unter tables/ (Standard: de)")
+    ap.add_argument("--status", action="store_true", help="nur Status anzeigen, nichts aendern")
     args = ap.parse_args()
 
     game = find_game(args.game_dir)
+    if args.status:
+        status(args.lang, game)
+        return 0
     if game is None:
         die(
             "Spielinstallation nicht gefunden.\n"
@@ -363,7 +403,7 @@ def main() -> int:
     ensure_lz4(args.yes)
     backup_archives(game)
     text_src, common_src = pristine_sources(game)
-    build(game, text_src, common_src)
+    build(game, text_src, common_src, args.lang)
 
     info("Installiere gebaute Pakete")
     for name in ("Text.arc", "Common.arc"):
@@ -376,8 +416,12 @@ def main() -> int:
     if not args.keep_language:
         set_language(game, args.language)
 
+    info("Schritt 7/7: Verifikation (verify_build)")
+    if run(["verify_build.py", "--lang", args.lang]) != 0:
+        die("verify_build meldet Abweichungen - Installation nicht freigegeben")
+
     print()
-    info("FERTIG. Spiel starten – Texte erscheinen auf Deutsch.")
+    info(f"FERTIG. Spiel starten – Tabellen: {args.lang}, Spielsprache: {args.language}.")
     info("Zurueck zum Original:  python install.py --restore")
     return 0
 

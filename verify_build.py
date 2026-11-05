@@ -37,6 +37,11 @@ ROOTS = (("po", "mod/Text"), ("poCommon", "mod/Common"))
 
 
 def main() -> int:
+    lang = "de"
+    argv = sys.argv[1:]
+    if "--lang" in argv:
+        lang = argv[argv.index("--lang") + 1]
+    A.load_tables(lang)
     active = any(A._beta_active(root) for root, _ in ROOTS)
     masked_rels = set()
     if active and REBASE:

@@ -120,6 +120,7 @@ def main() -> int:
     args = ap.parse_args()
 
     import apply_de  # Tabellen (DE) laden
+    apply_de.load_tables("de")
 
     rels = set()
     file_rowmap = {}   # rel -> {old_row(1b): new_row(1b)|None}

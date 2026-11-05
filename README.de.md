@@ -143,7 +143,7 @@ das sind Feinmeldungen, keine Übersetzungsfehler.
 | **`de_rebase.py`** | AUTO-erzeugte Zeilenmaske; wird nur beim Beta-/Update-Stand aktiv, auf Retail ignoriert |
 | `sakuna.py` | Kernwerkzeug: ARC lesen/schreiben (TGP0 + LZ4), CSV↔PO, Validierung, CLI |
 | `apply_de.py` | Tragt alle registrierten Tabellen aus `tables/` in die PO-Dateien ein |
-| `tables/` (53) | Retail-Übersetzungstabellen: `(voller Pfad, "English#<Zeile>") -> deutscher Text`; `None` = absichtlich übersprungen |
+| `tables/` (52) | Retail-Übersetzungstabellen: `(voller Pfad, "English#<Zeile>") -> deutscher Text`; `None` = absichtlich übersprungen |
 | `tables/beta/` (25) | Nur-Beta-Zeilen mit `#beta`-Keys (aktiv nur im Update-/Beta-Modus) |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | lokale Build-Artefakte – via `.gitignore` **nie im Repo** |
 

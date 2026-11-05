@@ -343,7 +343,11 @@ def _read_quoted(lines: List[str], start: int) -> Tuple[str, int]:
 
 
 def parse_po(path: str) -> Tuple[Dict[str, str], List[dict]]:
-    """Parst eine .po-Datei. Rueckgabe: (Header, Eintraege)."""
+    """Parst eine .po-Datei. Rueckgabe: (Header, Eintraege).
+
+    Jeder Eintrag enthaelt zusaetzlich "code" (aus dem vorangehenden
+    `#: row:N code:CODE field:F`-Kommentar; None, wenn keiner da ist).
+    """
     with open(path, encoding="utf-8") as fh:
         lines = fh.read().split("\n")
 
@@ -351,21 +355,28 @@ def parse_po(path: str) -> Tuple[Dict[str, str], List[dict]]:
     entries: List[dict] = []
     i = 0
     n = len(lines)
+    pending_code: object = None
     while i < n:
         line = lines[i].strip()
         if not line:
             i += 1
             continue
         if line.startswith("#"):
+            if line.startswith("#:") and " code:" in line and " field:" in line:
+                pending_code = line.split(" code:", 1)[1].split(" field:", 1)[0]
             i += 1
             continue
         if line.startswith("msgctxt"):
             ctx, i = _read_quoted(lines, i)
             msgid, i = _read_quoted(lines, i)
             msgstr, i = _read_quoted(lines, i)
-            entries.append({"msgctxt": ctx, "msgid": msgid, "msgstr": msgstr})
+            entries.append(
+                {"msgctxt": ctx, "msgid": msgid, "msgstr": msgstr, "code": pending_code}
+            )
+            pending_code = None
             continue
         if line.startswith("msgid"):
+            pending_code = None
             msgid, i = _read_quoted(lines, i)
             msgstr, i = _read_quoted(lines, i)
             if msgid == "":
