@@ -154,6 +154,35 @@ def find_game(explicit: str | None) -> Path | None:
 
 
 # --------------------------------------------------------------------------- #
+# Pristine-Quellen: Der Bau darf NIE aus der eigenen letzten Ausgabe erfolgen
+# (sonst ueberlebt ein Fehlschreib die naechste Runde in der Quellspalte).
+# Stattdessen wird der jeweils EXTERNE Eingang (Steam/Backup) als frischer
+# Extrakt gesichert; eigene Ausgaben werden ignoriert.
+# --------------------------------------------------------------------------- #
+
+PRISTINE_DIR = ".sakunadeutsch_pristine"
+
+
+def pristine_sources(game: Path) -> tuple[Path, Path]:
+    dw = game / "dataWin"
+    out: list[Path] = []
+    for name, sub in (("Text.arc", "Text"), ("Common.arc", "Common")):
+        inp = dw / name
+        our = ROOT / name.replace(".arc", ".mod.arc")
+        pr = dw / PRISTINE_DIR / sub
+        external = (not our.exists()) or (sha16(inp) != sha16(our))
+        if external or not (pr / "manifest.json").exists():
+            shutil.rmtree(pr, ignore_errors=True)
+            pr.parent.mkdir(parents=True, exist_ok=True)
+            why = "externe Version (Steam/Update/Wechsel)" if external else "Fallback"
+            info(f"{name}: pristine sichern ({why})")
+            if run(["sakuna.py", "extract", str(inp), str(pr)]) != 0:
+                die(f"pristine-Extrakt von {name} fehlgeschlagen")
+        out.append(pr)
+    return out[0], out[1]
+
+
+# --------------------------------------------------------------------------- #
 # Abhaengigkeiten
 # --------------------------------------------------------------------------- #
 
@@ -237,17 +266,28 @@ def set_language(game: Path, lang: str) -> None:
 # Build
 # --------------------------------------------------------------------------- #
 
-def build(game: Path) -> None:
-    datawin = game / "dataWin"
+def build(game: Path, text_src: Path, common_src: Path) -> None:
     # Alte Artefakte weg – werden sofort frisch neu aufgebaut (beide Baeume).
     for d in BUILD_DIRS:
         shutil.rmtree(ROOT / d, ignore_errors=True)
 
-    info("Schritt 1/6: Archive entpacken")
-    if run(["sakuna.py", "extract", str(datawin / "Text.arc"), "work/Text"]) != 0:
-        die("extract Text.arc fehlgeschlagen")
-    if run(["sakuna.py", "extract", str(datawin / "Common.arc"), "work/Common"]) != 0:
-        die("extract Common.arc fehlgeschlagen")
+    info("Schritt 1/6: Archivquellen bereitstellen (pristine)")
+    shutil.copytree(text_src, ROOT / "work" / "Text")
+    shutil.copytree(common_src, ROOT / "work" / "Common")
+
+    # Spielstand-Kompatitaet: Update/Beta erkennen, wenn keine Maske hinterlegt
+    beta_hit = (
+        (ROOT / "work/Text/Text/Event/Miyako/Kamuhitsuki.csvtxt").exists()
+        or (ROOT / "work/Common/Param/Game/EventStarter.csv").exists()
+    )
+    if beta_hit and not (ROOT / "de_rebase.py").exists():
+        die(
+            "Dieser Spielstand (Update/Beta) hat geaenderte Zeilen, aber\n"
+            "        de_rebase.py fehlt. Ein normaler Lauf wuerde Zeilen falsch\n"
+            "        zuordnen. Maske mit make_rebase.py erzeugen und erneut starten."
+        )
+    if beta_hit:
+        info("Update-/Beta-Stand erkannt - Rebase-Maske wird verwendet")
 
     info("Schritt 2/6: PO-Dateien erzeugen (msgids aus deiner Kopie)")
     if run(["sakuna.py", "po-dir", "work/Text", "po"]) != 0:
@@ -322,7 +362,8 @@ def main() -> int:
 
     ensure_lz4(args.yes)
     backup_archives(game)
-    build(game)
+    text_src, common_src = pristine_sources(game)
+    build(game, text_src, common_src)
 
     info("Installiere gebaute Pakete")
     for name in ("Text.arc", "Common.arc"):

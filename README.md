@@ -73,7 +73,7 @@ The backups are simply copied back; the game is retail again.
 | Game still shows Spanish/English | `TaueConfig.json` must contain `"Language": "Sp"` (the script sets this automatically); restart the game |
 | Game crashes / broken texts | Run `RESTORE.bat` — back to the original |
 | Ran Steam „Verify integrity of game files" | Steam restored the retail archives; simply run `INSTALL.bat` again (backups are untouched) |
-| After a game update texts shifted | Run `install.py` again (rebuilds everything); use `--restore` first if anything looks broken |
+| **Game update / Steam beta branch switched** | `install.py` detects changed rows automatically and re-keys the tables via the `de_rebase.py` mask (matching by code + source text). If the mask is missing, the script aborts hard instead of writing wrong German. Brand-new rows stay Spanish/English for now – that is the new translation workload. |
 | Linux + Proton | The game still lives in `…/steamapps/common/…` — default paths are detected; otherwise pass `--game-dir` |
 
 ---
@@ -89,6 +89,9 @@ The backups are simply copied back; the game is retail again.
 Checksums of the tested builds (SHA-256, first 16 characters):
 `Text.arc` = `61e75984e8838cc4`, `Common.arc` = `31fbc34915161d94`
 (reproducible by the installer — building from retail is byte-identical).
+The **open beta build** is supported as well (rebase mask, tested):
+`Text.arc` = `c423cfb687221691`, `Common.arc` = `02a66d95d4b97bbc`; the new
+beta rows there are still untranslated (2072 + 33 entries of new workload).
 
 ---
 
@@ -135,6 +138,8 @@ notes, not translation errors.
 |---|---|
 | **`install.py`** | **One-command installer**: path detection, dependencies, backup, build, install, language, `--restore` |
 | `INSTALL.bat` / `RESTORE.bat` | Windows double-click wrappers for `install.py` |
+| **`make_rebase.py`** | Generates `de_rebase.py` when a game update shifted rows (old↔new match by code + source text) |
+| **`de_rebase.py`** | AUTO-generated row mask; only active on beta/update builds, ignored on retail |
 | `sakuna.py` | Core tool: ARC read/write (TGP0 + LZ4), CSV↔PO, validation, CLI |
 | `apply_de.py` | Injects all registered `de_*.py` tables into the PO files |
 | `de_*.py` (52) | Translation tables: `(full path, "English#<row>") -> German text`; `None` = intentionally skipped |

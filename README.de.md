@@ -73,7 +73,7 @@ Die Backups werden einfach zurückkopiert; das Spiel ist wieder Retail.
 | Im Spiel immer noch Spanisch/Englisch | In `TaueConfig.json` muss `"Language": "Sp"` stehen (das Skript setzt das automatisch); Spiel danach neu starten |
 | Spiel stürzt ab / Texte kaputt | `RESTORE.bat` ausführen — zurück zum Original |
 | Steam „Datei-Integrität prüfen" ausgeführt | Steam hat die Originaldateien wiederhergestellt; einfach `INSTALL.bat` nochmal laufen lassen (Backups bleiben davon unberührt) |
-| Nach einem Spielupdate sind Texte verrutscht | Einfach `install.py` erneut ausführen (baut alles neu); bei komischen Texten erst `--restore` |
+| **Spiel-Update / Steam-Beta gewechselt** | `install.py` erkennt geänderte Zeilen automatisch und ordnet die Tabellen über die Maske `de_rebase.py` neu zu (Abgleich per Code + Quelltext). Fehlt die Maske, bricht das Skript hart ab, statt falsches Deutsch zu schreiben. Ganz neue Zeilen erscheinen vorerst weiterhin spanisch/english – das ist der neue Übersetzungsbedarf. |
 | Linux + Proton | Das Spiel lebt trotz Proton in `…/steamapps/common/…` – die Standardpfade werden erkannt; sonst `--game-dir` |
 
 ---
@@ -89,6 +89,9 @@ Zusammen **8196 übersetzte Strings**, 52 Übersetzungstabellen.
 Prüfsummen der getesteten Builds (SHA-256, erste 16 Zeichen):
 `Text.arc` = `61e75984e8838cc4`, `Common.arc` = `31fbc34915161d94`
 (vom Installations-Skript reproduzierbar — der Bau aus Retail ist byte-identisch).
+Der **OpenBeta-Stand** wird ebenfalls unterstützt (Rebase-Maske, getestet):
+`Text.arc` = `c423cfb687221691`, `Common.arc` = `02a66d95d4b97bbc`; neue
+Beta-Zeilen sind dort noch unübersetzt (2072 + 33 Einträge Restbedarf).
 
 ---
 
@@ -135,6 +138,8 @@ das sind Feinmeldungen, keine Übersetzungsfehler.
 |---|---|
 | **`install.py`** | **Ein-Kommando-Installer**: Pfadsuche, Dependencies, Backup, Build, Installation, Sprache, `--restore` |
 | `INSTALL.bat` / `RESTORE.bat` | Windows-Doppelklick-Wrappers für `install.py` |
+| **`make_rebase.py`** | Erzeugt `de_rebase.py`, wenn ein Spiel-Update die Zeilen verschoben hat (Abgleich Alt↔Neu über Code + Quelltext) |
+| **`de_rebase.py`** | AUTO-erzeugte Zeilenmaske; wird nur beim Beta-/Update-Stand aktiv, auf Retail ignoriert |
 | `sakuna.py` | Kernwerkzeug: ARC lesen/schreiben (TGP0 + LZ4), CSV↔PO, Validierung, CLI |
 | `apply_de.py` | Tragt alle registrierten `de_*.py`-Tabellen in die PO-Dateien ein |
 | `de_*.py` (52) | Übersetzungstabellen: `(voller Pfad, "English#<Zeile>") -> deutscher Text`; `None` = absichtlich übersprungen |

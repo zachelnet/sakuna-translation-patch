@@ -84,6 +84,44 @@ for table in (DE_A, DE_B, DE_C, DE_PAUSE, DE_SAVELOAD, DE_COMMON,
               DE_COOKING, DE_WORLDMAP_LM, DE_CREDITS):
     DE.update(table)
 
+# --------------------------------------------------------------------------- #
+# Rebase (Update-/Beta-Spielstaende): apply_de merkt sich (Datei, Feld#NEUE
+# Zeile) -> (alter Tabellen-Schluessel). Nur aktiv, wenn Marker-Dateien
+# vorhanden sind, die es ausschliesslich im neuen Stand gibt; auf dem alten
+# Stand wird die Maske ignoriert (Identitaet).
+# --------------------------------------------------------------------------- #
+
+REBASE = {}
+try:
+    from de_rebase import REBASE as _REBASE
+    REBASE = _REBASE
+except ImportError:
+    pass
+
+BETA_MARKERS = (
+    "Text/Event/Miyako/Kamuhitsuki.po",   # nur im Beta-/Update-Stand vorhanden
+    "Param/Game/EventStarter.po",         # dito in Common (falls PO existiert)
+    # Werkbaum-Abdeckung (gilt fuer beide Wurzeln): die beiden Marker-Dateien
+    # existieren ausschliesslich im neuen Spielstand - auch ohne dass ihre
+    # POs erzeugt wurden (EventStarter.csv hat z.B. keine Quellspalte).
+    os.path.join("work", "Text", "Text", "Event", "Miyako", "Kamuhitsuki.csvtxt"),
+    os.path.join("work", "Common", "Param", "Game", "EventStarter.csv"),
+)
+
+
+def _beta_active(po_root: str) -> bool:
+    # Relative Marker gegen po_root, absolute/relativ-zu-cwd Marker roh pruefen
+    for m in BETA_MARKERS:
+        if os.path.exists(m):
+            return True
+        if os.path.exists(os.path.join(po_root, m)):
+            return True
+    return False
+
+
+_UNSET = object()   # noch nicht entschieden
+_MISSING = object() # kein Tabelleneintrag -> missing-Report
+
 
 def write_po(path, header, entries):
     os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
@@ -102,6 +140,18 @@ def main(po_root: str = "po") -> int:
     filled = 0
     missing = []
     checked = 0
+    active = False
+    if _beta_active(po_root):
+        if not REBASE:
+            print(
+                "FEHLER: Spielstand mit geaenderten Zeilen erkannt (Update/Beta),\n"
+                "        aber de_rebase.py fehlt oder ist leer. Ohne Maske waeren\n"
+                "        Zeilen falsch zugeordnet - abgebrochen.\n"
+                "        Neuen Stand mit make_rebase.py abdecken."
+            )
+            return 2
+        active = True
+        print(f"Update-/Beta-Stand erkannt - Rebase aktiv: {len(REBASE)} Zuordnungen.")
     for dirpath, _dirs, files in os.walk(po_root):
         for fn in sorted(files):
             if not fn.endswith(".po"):
@@ -114,14 +164,28 @@ def main(po_root: str = "po") -> int:
                 continue
             base = os.path.splitext(os.path.basename(archive_path))[0]
             checked += 1
+            # Datei mit Maskeneintraegen? Dann gilt im aktiven Modus NUR die
+            # Maske - ein Beta-Key ohne Maskeneintrag ist neuer Inhalt und
+            # darf nie einen alten Tabellenwert abbekommen (kein Fallback).
+            file_masked = active and any(k[0] == archive_path for k in REBASE)
             for e in entries:
                 key_path = (archive_path, e["msgctxt"])
                 key_base = (base, e["msgctxt"])
-                if key_path in DE:
-                    val = DE[key_path]
-                elif key_base in DE:
-                    val = DE[key_base]
-                else:
+                val = _UNSET
+                if active:
+                    nk = REBASE.get(key_path)
+                    if nk is not None:
+                        val = DE.get(nk, _MISSING)
+                    elif file_masked:
+                        val = _MISSING
+                if val is _UNSET:
+                    if key_path in DE:
+                        val = DE[key_path]
+                    elif key_base in DE:
+                        val = DE[key_base]
+                    else:
+                        val = _MISSING
+                if val is _MISSING:
                     missing.append((archive_path, e["msgctxt"], e["msgid"]))
                     continue
                 if val is None:
