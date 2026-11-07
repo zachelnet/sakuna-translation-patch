@@ -1,0 +1,2 @@
+# Testwerkzeuge (nur fuer Entwickler, nicht fuer Spieler noetig)
+pytest>=8.0
