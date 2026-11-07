@@ -1,5 +1,5 @@
 @echo off
-rem SakunaDeutsch - deutschen Patch bauen und installieren (Doppelklick)
+rem sakuna-translation-patch - deutschen Patch bauen und installieren (Doppelklick)
 cd /d "%~dp0"
 where py >nul 2>nul
 if %errorlevel%==0 (

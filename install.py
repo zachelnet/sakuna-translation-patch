@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SakunaDeutsch – automatisierter Installer/Builder (Windows, Linux, macOS).
+"""sakuna-translation-patch – automatisierter Installer/Builder (Windows, Linux, macOS).
 
 Was das Skript macht:
   1. Sucht die Spielinstallation (Steam-Bibliotheken, Proton, Env-Var,
@@ -162,7 +162,7 @@ def find_game(explicit: str | None) -> Path | None:
 # Extrakt gesichert; eigene Ausgaben werden ignoriert.
 # --------------------------------------------------------------------------- #
 
-PRISTINE_DIR = ".sakunadeutsch_pristine"
+PRISTINE_DIR = ".pristine-src"
 
 
 def pristine_sources(game: Path) -> tuple[Path, Path]:
@@ -354,7 +354,9 @@ def main() -> int:
     if sys.version_info < (3, 10):
         die("Python 3.10+ benoetigt (aktuell: %s)" % sys.version.split()[0])
 
-    ap = argparse.ArgumentParser(description="SakunaDeutsch – deutscher Sprachpatch, automatisiert")
+    ap = argparse.ArgumentParser(
+        description=f"sakuna-translation-patch {S.__version__} – deutscher Sprachpatch, automatisiert",
+    )
     ap.add_argument("--game-dir", help="Pfad zum Spielverzeichnis (enthält dataWin/)")
     ap.add_argument("--restore", action="store_true", help="Originaldateien aus Backups wiederherstellen")
     ap.add_argument("--yes", action="store_true", help="keine Rueckfragen")
@@ -362,6 +364,7 @@ def main() -> int:
     ap.add_argument("--language", default="Sp", help="Sprachcode (Standard: Sp)")
     ap.add_argument("--lang", default="de", help="Sprachverzeichnis unter tables/ (Standard: de)")
     ap.add_argument("--status", action="store_true", help="nur Status anzeigen, nichts aendern")
+    ap.add_argument("--version", action="version", version=f"sakuna-translation-patch {S.__version__}")
     args = ap.parse_args()
 
     game = find_game(args.game_dir)

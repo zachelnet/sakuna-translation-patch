@@ -1,4 +1,4 @@
-# SakunaDeutsch — German Language Patch for *Sakuna: Of Rice and Ruin*
+# sakuna-translation-patch — German Language Patch for *Sakuna: Of Rice and Ruin*
 
 > [Deutsch](README.de.md)  |  **English**
 
@@ -53,9 +53,13 @@ The script does everything by itself:
 
 Launch the game — texts appear in German.
 
-<!-- Suggested screenshots before release:
-     ![](docs/player-install.png)
-     ![](docs/ingame-german.png) -->
+| Dialogue | Status screen |
+|---|---|
+| ![German dialogue with speech bubble and name plate](docs/ingame-german.png) | ![Status screen: level, stats and field data in German](docs/ingame-ui.png) |
+
+| World map | OpenBeta scene |
+|---|---|
+| ![World map landmark names with German umlauts](docs/worldmap-umlauts.png) | ![OpenBeta banquet scene with German text](docs/ingame-beta.png) |
 
 ### Back to the original
 
@@ -80,12 +84,15 @@ The backups are simply copied back; the game is retail again.
 
 ## Status
 
+**Version 2.0.0** — see [CHANGELOG.md](CHANGELOG.md) for the release history.
+
 | Archive | Content | Coverage |
 |---|---|---|
 | `Text.arc` | Dialogues, quests, locations, UI text | **5734 of 5773 entries (99.3 %)** – the rest are intentionally empty placeholders (`-`, `?dummy`) |
 | `Common.arc` | Parameters, items, equipment, cooking, travel objectives, credits | **all translatable entries (2462)** |
 
-**8196 translated strings** in total, 52 translation tables.
+**8196 translated strings** in total, 52 retail + 25 beta translation tables
+(10377 table entries, keyed by stable row codes).
 Checksums of the tested builds (SHA-256, first 16 characters):
 `Text.arc` = `61e75984e8838cc4`, `Common.arc` = `31fbc34915161d94`
 (reproducible by the installer — building from retail is byte-identical).
@@ -142,8 +149,12 @@ notes, not translation errors.
 | **`migrate_keys.py`** | One-shot tool that converted all tables from row-index keys to code keys; documents the key scheme |
 | `sakuna.py` | Core tool: ARC read/write (TGP0 + LZ4), CSV↔PO, validation, CLI |
 | `apply_de.py` | Injects all registered tables from `tables/` into the PO files |
-| `tables/` (52) | Retail translation tables: `(full path, "English#<row>") -> German text`; `None` = intentionally skipped |
-| `tables/beta/` (25) | Beta-only rows — same key scheme, the *root* carries a `#beta` suffix; active only on update/beta builds |
+| `tables/<lang>/` (52) | Retail translation tables: `(full path, "English#c:CODE") -> German text`; `None` = intentionally skipped |
+| `tables/<lang>/beta/` (25) | Beta-only rows — same key scheme, the *root* carries a `#beta` suffix; active only on update/beta builds |
+| `tests/` (86) | pytest suite for the pipeline (`python -m pytest`; deps in `requirements-dev.txt`) |
+| `capture.py` | Takes screenshots of the running game for the README (`python3 capture.py <name>`) |
+| `docs/` | README screenshots and the shot list |
+| `CHANGELOG.md` | Release history |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | local build artifacts – kept out of the repo via `.gitignore` |
 
 ### Table format

@@ -48,6 +48,7 @@ NAME_SIZE = 0x60
 COMPRESSION_LZ4 = 0x02
 MANIFEST_NAME = "manifest.json"
 CSV_EXTENSIONS = (".csvtxt", ".csvq", ".csvwl", ".csvcr", ".csvtr", ".csv")
+__version__ = "2.0.0"
 
 
 class SakunaError(RuntimeError):
@@ -472,7 +473,7 @@ def csv_to_po(
     head = [
         "msgid \"\"",
         "msgstr \"\"",
-        f'"Project-Id-Version: SakunaDeutsch 1.0\\n"',
+        f'"Project-Id-Version: sakuna-translation-patch {__version__}\\n"',
         f'"Sakuna-File: {_po_escape(rel_name or os.path.basename(csv_path))}\\n"',
         f'"Sakuna-Src: {",".join(s for s, _d in pairs)}\\n"',
         f'"Sakuna-Dst: {",".join(d for _s, d in pairs)}\\n"',

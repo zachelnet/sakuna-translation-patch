@@ -1,4 +1,4 @@
-# SakunaDeutsch — Deutscher Sprachpatch für *Sakuna: Of Rice and Ruin*
+# sakuna-translation-patch — Deutscher Sprachpatch für *Sakuna: Of Rice and Ruin*
 
 > **Deutsch**  |  [English](README.md)
 
@@ -53,9 +53,13 @@ Das Skript erledigt alles selbst:
 
 Spiel starten — die Texte erscheinen auf Deutsch.
 
-<!-- Screenshot-Vorschlaege vor dem Release hier einfuegen:
-     ![](docs/player-install.png)
-     ![](docs/ingame-german.png) -->
+| Dialog | Statusbildschirm |
+|---|---|
+| ![Deutscher Dialog mit Sprechblase und Namen](docs/ingame-german.png) | ![Statusbildschirm: Stufe, Werte und Felddaten auf Deutsch](docs/ingame-ui.png) |
+
+| Weltkarte | OpenBeta-Szene |
+|---|---|
+| ![Ortsnamen auf der Weltkarte mit deutschen Umlauten](docs/worldmap-umlauts.png) | ![OpenBeta-Bankettszene mit deutschem Text](docs/ingame-beta.png) |
 
 ### Wieder zurück zum Original
 
@@ -80,12 +84,15 @@ Die Backups werden einfach zurückkopiert; das Spiel ist wieder Retail.
 
 ## Stand
 
+**Version 2.0.0** — die Release-Historie steht in [CHANGELOG.md](CHANGELOG.md).
+
 | Archiv | Inhalt | Abdeckung |
 |---|---|---|
 | `Text.arc` | Dialoge, Quests, Orte, UI-Texte | **5734 von 5773 Einträgen (99,3 %)** – der Rest sind absichtlich leere Platzhalter (`-`, `?dummy`) |
 | `Common.arc` | Parameter, Items, Ausrüstung, Kochen, Reiseziele, Credits | **alle übersetzbaren Einträge (2462)** |
 
-Zusammen **8196 übersetzte Strings**, 52 Übersetzungstabellen.
+Zusammen **8196 übersetzte Strings**, 52 Retail- + 25 Beta-Übersetzungstabellen
+(10377 Tabelleneinträge, über stabile Zeilen-Codes geschlüsselt).
 Prüfsummen der getesteten Builds (SHA-256, erste 16 Zeichen):
 `Text.arc` = `61e75984e8838cc4`, `Common.arc` = `31fbc34915161d94`
 (vom Installations-Skript reproduzierbar — der Bau aus Retail ist byte-identisch).
@@ -142,8 +149,12 @@ das sind Feinmeldungen, keine Übersetzungsfehler.
 | **`migrate_keys.py`** | Einmal-Werkzeug, das alle Tabellen von Zeilen- auf Code-Schlüssel umstellte; dokumentiert zugleich das Schlüssel-Schema |
 | `sakuna.py` | Kernwerkzeug: ARC lesen/schreiben (TGP0 + LZ4), CSV↔PO, Validierung, CLI |
 | `apply_de.py` | Tragt alle registrierten Tabellen aus `tables/` in die PO-Dateien ein |
-| `tables/` (52) | Retail-Übersetzungstabellen: `(voller Pfad, "English#<Zeile>") -> deutscher Text`; `None` = absichtlich übersprungen |
-| `tables/beta/` (25) | Nur-Beta-Zeilen — gleiches Schlüssel-Schema, der *Root* trägt `#beta`-Suffix; aktiv nur im Update-/Beta-Modus |
+| `tables/<lang>/` (52) | Retail-Übersetzungstabellen: `(voller Pfad, "English#c:CODE") -> deutscher Text`; `None` = absichtlich übersprungen |
+| `tables/<lang>/beta/` (25) | Nur-Beta-Zeilen — gleiches Schlüssel-Schema, der *Root* trägt `#beta`-Suffix; aktiv nur im Update-/Beta-Modus |
+| `tests/` (86) | pytest-Suite für die Pipeline (`python -m pytest`; Deps in `requirements-dev.txt`) |
+| `capture.py` | Macht Screenshots des laufenden Spiels für die README (`python3 capture.py <name>`) |
+| `docs/` | README-Screenshots und die Shot-Liste |
+| `CHANGELOG.md` | Release-Historie |
 | `po/`, `poCommon/`, `work/`, `mod/`, `*.mod.arc` | lokale Build-Artefakte – via `.gitignore` **nie im Repo** |
 
 ### Tabellenformat

@@ -1,5 +1,5 @@
 @echo off
-rem SakunaDeutsch - auf die Originaldateien zuruecksetzen (Doppelklick)
+rem sakuna-translation-patch - auf die Originaldateien zuruecksetzen (Doppelklick)
 cd /d "%~dp0"
 where py >nul 2>nul
 if %errorlevel%==0 (
